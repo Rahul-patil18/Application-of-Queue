@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<!-- saved from url=(0062)file:///C:/Users/SACHIN/C%20program/.vscode/dsc%20project.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Scheduling System</title>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212; /* Dark theme background */
+            color: #f0f0f0; /* Soft white text */
+            padding: 20px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00B0FF; /* Bright cyan for headings */
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+
+        .container {
+            width: 70%;
+            margin: 0 auto;
+            background-color: #1C1C1C; /* Dark grey with a touch of black for contrast */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            background-color: #2B2B2B; /* Slightly lighter grey */
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 35%;
+            padding: 12px;
+            margin-right: 10px;
+            border-radius: 8px;
+            border: 1px solid #444; /* Subtle border */
+            background-color: #333; /* Dark background for inputs */
+            color: #f0f0f0;
+            font-size: 1rem;
+            transition: all 0.3s ease-in-out;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border: 2px solid #00B0FF; /* Cyan border on focus */
+        }
+
+        input.invalid {
+            border-color: #FF5252; /* Red border for invalid input */
+            background-color: #5B1D1D; /* Dark red background for invalid inputs */
+        }
+
+        button {
+            padding: 12px 18px;
+            background: linear-gradient(145deg, #6B9B6B, #4C6B4C); /* Gradient light green background */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #4C6B4C, #6B9B6B); /* Hover effect with inverted gradient */
+        }
+
+        .queue-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        #queue-display {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #2B2B2B;
+            border: 1px solid #444;
+            border-radius: 8px;
+            min-height: 40px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #queue-display ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #queue-display li {
+            background-color: #444; /* Medium grey background for process list items */
+            padding: 10px;
+            margin: 5px;
+            border-radius: 8px;
+            color: #FFF;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #log {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #1C1C1C;
+            border: 1px solid #444;
+            border-radius: 8px;
+            min-height: 50px;
+            max-height: 180px;
+            overflow-y: auto;
+            color: #FFEB3B; /* Yellow for log entries */
+            transition: all 0.3s ease-in-out;
+        }
+
+        #log ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #log li {
+            background-color: #333;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+        }
+
+        .error-message {
+            color: #FF5252; /* Bright red for error messages */
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        /* Explanation Section */
+        #explanation-section {
+            margin-top: 30px;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #444;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #explanation-content {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #2B2B2B;
+            border-radius: 8px;
+        }
+
+        #explanation-content p {
+            margin-bottom: 15px;
+        }
+
+        .strategy-select {
+            margin-bottom: 25px;
+        }
+
+        /* Add space between "Add Process" / "Remove Process" and strategy selections */
+        .queue-actions {
+            margin-bottom: 30px;
+        }
+
+        .container .queue-actions button {
+            flex: 1;
+            width: 48%;
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>OS Scheduling System</h1>
+    <div class="container">
+        <!-- Input Fields for Process Information -->
+        <div class="form-group">
+            <input type="text" id="process-id" placeholder="Enter Process ID (Max 4 Digits)" oninput="validateProcessId()">
+            <input type="number" id="arrival-time" placeholder="Enter Arrival Time (0-99)" min="0" oninput="validateArrivalTime()">
+            <input type="number" id="burst-time" placeholder="Enter Burst Time (1-99)" min="1" oninput="validateBurstTime()">
+        </div>
+
+        <!-- Queue Action Buttons -->
+        <div class="queue-actions">
+            <button id="remove-process-btn" onclick="removeProcess()">Remove Process (Choose Removal Strategy)</button>
+            <button id="add-process-btn" onclick="addProcess()">Add Process (Choose Scheduling Strategy)</button>
+        </div>
+
+        <!-- Scheduling Strategy Select -->
+        <div class="strategy-select">
+            <label for="scheduling-strategy">Choose Scheduling Strategy for Adding: </label>
+            <select id="scheduling-strategy">
+                <option value="fcfs">First Come First Serve (FCFS)</option>
+                <option value="arrival-time">Arrival Time Sorted</option>
+            </select>
+        </div>
+
+        <!-- Removal Strategy Select -->
+        <div class="strategy-select">
+            <label for="removal-strategy">Choose Removal Strategy: </label>
+            <select id="removal-strategy">
+                <option value="">None (FIFO)</option>
+                <option value="shortest-burst">Remove Shortest Burst Time</option>
+                <option value="greatest-burst">Remove Greatest Burst Time</option>
+            </select>
+        </div>
+
+        <!-- Error Message Display -->
+        <div id="error-message" class="error-message"></div>
+
+        <!-- Queue Display Area -->
+        <div id="queue-display">
+            <h3>Queue:</h3>
+            <ul id="queue-list">
+                <!-- List of processes will appear here -->
+            </ul>
+        </div>
+
+        <!-- Log Display Area -->
+        <div id="log">
+            <h3>Execution Log:</h3>
+            <ul id="execution-log">
+                <!-- Execution log will appear here -->
+            </ul>
+        </div>
+
+        <!-- Clear Queue Button -->
+        <div>
+            <button onclick="clearQueue()">Clear Queue</button>
+        </div>
+
+        <!-- Explanation Section -->
+        <div id="explanation-section" onclick="toggleExplanation()">
+            <h3>Click here for explanation</h3>
+        </div>
+
+        <div id="explanation-content" style="display: block;">
+            <p><strong>1. Queue Working in this Program:</strong><br>
+                The queue in this program operates as a basic process scheduling queue, where processes are added or removed based on different strategies. The queue holds processes with their respective arrival times and burst times, and it can store a maximum of 10 processes. This queue is essential for simulating how an operating system schedules processes for execution, ensuring that the system follows predefined rules for adding and removing processes efficiently.</p>
+            <p><strong>2. Execution Explanation:</strong><br>
+                In this system, processes are represented by objects that contain three properties: process ID, arrival time, and burst time. When a process is added, it is inserted into the queue. The system allows the user to select a scheduling strategy, either First Come First Serve (FCFS) or Arrival Time Sorted. The queue updates dynamically based on the selected strategy, with logs of all operations recorded.</p>
+
+            <p><strong>3. Strategies Involved:</strong><br>
+                Different strategies such as FCFS, sorting by arrival time, and burst time prioritization are used. FCFS adds processes in the order they are received. Sorting by arrival time ensures that processes with the earliest arrival time are executed first. The burst time prioritization strategy is used during process removal, allowing processes with the shortest or longest burst times to be prioritized.</p>
+
+            <p><strong>4. Conclusion:</strong><br>
+                This scheduling simulation provides insight into how operating systems manage processes based on different scheduling algorithms. Understanding these strategies can help improve process management and optimize system performance.</p>
+        </div>
+    </div>
+
+    <script>
+        let processQueue = [];
+        const MAX_QUEUE_SIZE = 10;
+        const MAX_LOG_ENTRIES = 100;
+        const executionLog = [];
+
+        // Validate Process ID
+        function validateProcessId() {
+            const processIdInput = document.getElementById('process-id');
+            const processId = processIdInput.value;
+            if (processId.length === 0 || processId.length > 4 || !/^\d*$/.test(processId)) {
+                processIdInput.classList.add('invalid');
+                return false;
+            } else {
+                processIdInput.classList.remove('invalid');
+                return true;
+            }
+        }
+
+        // Validate Arrival Time
+        function validateArrivalTime() {
+            const arrivalTimeInput = document.getElementById('arrival-time');
+            const arrivalTime = arrivalTimeInput.value;
+            if (arrivalTime === "" || arrivalTime < 0 || arrivalTime > 99) {
+                arrivalTimeInput.classList.add('invalid');
+                return false;
+            } else {
+                arrivalTimeInput.classList.remove('invalid');
+                return true;
+            }
+        }
+
+        // Validate Burst Time
+        function validateBurstTime() {
+            const burstTimeInput = document.getElementById('burst-time');
+            const burstTime = burstTimeInput.value;
+            if (burstTime === "" || burstTime < 1 || burstTime > 99) {
+                burstTimeInput.classList.add('invalid');
+                return false;
+            } else {
+                burstTimeInput.classList.remove('invalid');
+                return true;
+            }
+        }
+
+        // Add Process to Queue
+        function addProcess() {
+            const processId = document.getElementById('process-id').value;
+            const arrivalTime = parseInt(document.getElementById('arrival-time').value);
+            const burstTime = parseInt(document.getElementById('burst-time').value);
+            const schedulingStrategy = document.getElementById('scheduling-strategy').value;
+
+            // Validate fields before adding
+            if (!validateProcessId() || !validateArrivalTime() || !validateBurstTime()) {
+                showError('Please correct the input fields before adding the process.');
+                clearInputFields(); // Clear input fields if validation fails
+                return;
+            }
+
+            // Check if queue is full
+            if (processQueue.length >= MAX_QUEUE_SIZE) {
+                showError('Queue size cannot exceed ' + MAX_QUEUE_SIZE + ' processes.');
+                clearInputFields(); // Clear input fields if queue is full
+                return;
+            }
+
+            const newProcess = { processId, arrivalTime, burstTime };
+
+            // Add process based on strategy
+            if (schedulingStrategy === 'fcfs') {
+                processQueue.push(newProcess);
+            } else if (schedulingStrategy === 'arrival-time') {
+                processQueue.push(newProcess);
+                processQueue.sort((a, b) => a.arrivalTime - b.arrivalTime);
+            }
+
+            addToLog('Process Added: ' + JSON.stringify(newProcess));
+            updateQueueDisplay();
+
+            // Clear the input fields
+            clearInputFields();
+            clearError(); // Clear any existing error message
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+        }
+
+        // Clear error message
+        function clearError() {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = '';
+        }
+
+        // Update Queue Display
+        function updateQueueDisplay() {
+            const queueList = document.getElementById('queue-list');
+            queueList.innerHTML = '';
+            processQueue.forEach(process => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `ID: ${process.processId}, Arrival Time: ${process.arrivalTime}, Burst Time: ${process.burstTime}`;
+                queueList.appendChild(listItem);
+            });
+        }
+
+        // Add to Execution Log
+        function addToLog(message) {
+            if (executionLog.length >= MAX_LOG_ENTRIES) {
+                executionLog.shift(); // Remove the oldest entry if max log size is reached
+            }
+            executionLog.push(message);
+
+            const logList = document.getElementById('execution-log');
+            const logItem = document.createElement('li');
+            logItem.textContent = message;
+            logList.appendChild(logItem);
+        }
+
+        // Clear Input Fields
+        function clearInputFields() {
+            document.getElementById('process-id').value = '';
+            document.getElementById('arrival-time').value = '';
+            document.getElementById('burst-time').value = '';
+        }
+
+        // Clear Queue
+        function clearQueue() {
+            if (processQueue.length === 0) {
+                showError('Queue is already empty.');
+                return;
+            }
+            processQueue = [];
+            updateQueueDisplay();
+            addToLog('Queue Cleared');
+        }
+
+        // Toggle Explanation Section
+        function toggleExplanation() {
+            const explanationContent = document.getElementById('explanation-content');
+            explanationContent.style.display = explanationContent.style.display === 'none' || explanationContent.style.display === '' ? 'block' : 'none';
+        }
+
+        // Remove Process from Queue
+        function removeProcess() {
+            const removalStrategy = document.getElementById('removal-strategy').value;
+
+            if (processQueue.length === 0) {
+                showError('No process to remove. The queue is empty.');
+                return;
+            }
+
+            let removedProcess = null;
+
+            if (removalStrategy === 'shortest-burst') {
+                removedProcess = processQueue.reduce((minProcess, currentProcess) => {
+                    return currentProcess.burstTime < minProcess.burstTime ? currentProcess : minProcess;
+                });
+                processQueue = processQueue.filter(p => p !== removedProcess);
+            } else if (removalStrategy === 'greatest-burst') {
+                removedProcess = processQueue.reduce((maxProcess, currentProcess) => {
+                    return currentProcess.burstTime > maxProcess.burstTime ? currentProcess : maxProcess;
+                });
+                processQueue = processQueue.filter(p => p !== removedProcess);
+            } else {
+                removedProcess = processQueue.shift(); // FIFO strategy
+            }
+
+            addToLog('Process Removed: ' + JSON.stringify(removedProcess));
+            updateQueueDisplay();
+        }
+    </script>
+
+
+
+</body></html>
